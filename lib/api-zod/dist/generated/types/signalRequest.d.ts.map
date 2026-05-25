@@ -1,0 +1,1 @@
+{"version":3,"file":"signalRequest.d.ts","sourceRoot":"","sources":["../../../src/generated/types/signalRequest.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,uBAAuB,EAAE,MAAM,2BAA2B,CAAC;AACzE,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAEvE,MAAM,WAAW,aAAa;IAC5B,MAAM,EAAE,MAAM,CAAC;IACf,SAAS,EAAE,sBAAsB,CAAC;IAClC,UAAU,CAAC,EAAE,uBAAuB,CAAC;CACtC"}
