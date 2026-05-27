@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm install && pnpm --filter @workspace/api-server build && pnpm --filter @workspace/trading-signals build",
-  "installCommand": "pnpm install",
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server build && pnpm --filter @workspace/trading-signals build",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "builds": [
     {
       "src": "artifacts/api-server/dist/index.mjs",
