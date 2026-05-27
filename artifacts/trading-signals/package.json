@@ -76,8 +76,6 @@
     "zod": "^4.4.3"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.8",
-    "better-auth": "^1.6.11",
     "lightweight-charts": "^5.2.0"
   }
 }
