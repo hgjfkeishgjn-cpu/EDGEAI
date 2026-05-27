@@ -3,31 +3,10 @@
   "buildCommand": "npm install -g pnpm@10.32.1 && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server build && pnpm --filter @workspace/trading-signals build",
   "installCommand": "npm install -g pnpm@10.32.1 && pnpm install --no-frozen-lockfile",
   "outputDirectory": "artifacts/trading-signals/dist/public",
-  "builds": [
-    {
-      "src": "artifacts/api-server/dist/index.mjs",
-      "use": "@vercel/node",
-      "config": {
-        "runtime": "nodejs20.x"
-      }
-    },
-    {
-      "src": "artifacts/trading-signals/dist/public/**",
-      "use": "@vercel/static"
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "artifacts/api-server/dist/index.mjs"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "artifacts/trading-signals/dist/public/$1"
-    },
-    {
-      "src": "/.*",
-      "dest": "artifacts/trading-signals/dist/public/index.html"
     }
   ],
   "env": {
