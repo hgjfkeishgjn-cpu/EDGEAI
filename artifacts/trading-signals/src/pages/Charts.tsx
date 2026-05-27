@@ -8,6 +8,7 @@ import {
   LineSeries,
   LineStyle,
   type IChartApi,
+  type UTCTimestamp,
 } from "lightweight-charts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,7 @@ interface Candle {
   volume: number;
 }
 
-type TTime = number;
+type TTime = UTCTimestamp;
 
 function calcEMA(data: number[], period: number): (number | null)[] {
   if (data.length < period) return data.map(() => null);

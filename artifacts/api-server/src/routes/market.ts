@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, signalsTable } from "@workspace/db";
 import { desc, count } from "drizzle-orm";
 import { GetMarketPricesQueryParams } from "@workspace/api-zod";
-import { getLivePrices, getLivePrice, getKnownSymbols } from "../lib/marketData";
+import { getLivePrices, getKnownSymbols } from "../lib/marketData";
 
 const router = Router();
 

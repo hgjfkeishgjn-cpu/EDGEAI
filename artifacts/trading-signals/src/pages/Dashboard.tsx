@@ -15,19 +15,28 @@ import EconomicCalendar from "@/components/widgets/EconomicCalendar";
 import EquityCurve from "@/components/widgets/EquityCurve";
 import { useEffect, useRef, useState } from "react";
 
-function PriceFlash({ value, decimals = 2, prefix = "" }: { value: number; decimals?: number; prefix?: string }) {
-  const prev = useRef(value);
+function PriceFlash({ value, decimals = 2, prefix = "" }: { value?: number; decimals?: number; prefix?: string }) {
+  const prev = useRef<number | undefined>(value);
   const [cls, setCls] = useState("");
 
   useEffect(() => {
-    if (prev.current !== value && prev.current !== 0) {
-      setCls(value > prev.current ? "flash-up" : "flash-down");
+    if (value === undefined || value === null) {
+      prev.current = value;
+      return undefined;
+    }
+    if (prev.current !== undefined && prev.current !== value && prev.current !== 0) {
+      setCls(value > (prev.current ?? 0) ? "flash-up" : "flash-down");
       const t = setTimeout(() => setCls(""), 650);
       prev.current = value;
       return () => clearTimeout(t);
     }
     prev.current = value;
+    return undefined;
   }, [value]);
+
+  if (value === undefined || value === null) {
+    return <span className="font-mono font-bold text-muted-foreground">—</span>;
+  }
 
   return (
     <span className={`font-mono font-bold transition-colors duration-300 rounded px-0.5 ${cls}`}>
@@ -88,11 +97,23 @@ function StatCard({ title, value, icon: Icon, trend, valueClass = "", glow = "" 
   );
 }
 
+function safeNumber(value: number | null | undefined, fallback = 0) {
+  return typeof value === "number" && !Number.isNaN(value) ? value : fallback;
+}
+
 export default function Dashboard() {
-  const { data: summary,        isLoading: loadingSummary }     = useGetSignalSummary({ query: { refetchInterval: 30_000 } });
-  const { data: recentActivity, isLoading: loadingActivity }    = useGetRecentActivity({ limit: 8 }, { query: { refetchInterval: 30_000 } });
+  const { data: summary,        isLoading: loadingSummary }     = useGetSignalSummary({ query: { queryKey: ["signalSummary"], refetchInterval: 30_000 } });
+  const { data: recentActivity, isLoading: loadingActivity }    = useGetRecentActivity({ limit: 8 }, { query: { queryKey: ["recentActivity", { limit: 8 }], refetchInterval: 30_000 } });
   const { data: topPerformers,  isLoading: loadingPerformers }  = useGetTopPerformers();
-  const { data: prices }                                         = useGetMarketPrices({ symbols: "BTC,ETH,GOLD,NASDAQ" }, { query: { refetchInterval: 5000 } });
+  const { data: prices }                                         = useGetMarketPrices({ symbols: "BTC,ETH,GOLD,NASDAQ" }, { query: { queryKey: ["marketPrices", "BTC,ETH,GOLD,NASDAQ"], refetchInterval: 5000 } });
+
+  const totalSignals = safeNumber(summary?.totalSignals);
+  const winRate = safeNumber(summary?.winRate);
+  const avgConfidence = safeNumber(summary?.avgConfidence);
+  const buyCount = safeNumber(summary?.buyCount);
+  const sellCount = safeNumber(summary?.sellCount);
+  const holdCount = safeNumber(summary?.holdCount);
+  const signalMixTotal = Math.max(1, totalSignals);
 
   const btcPrice = prices?.find(p => p.symbol === "BTC")?.price ?? 77_500;
   const { orderBook, activeTrades, sentiment, structure, currentPrice } = useLiveSimulation(btcPrice);
@@ -124,21 +145,21 @@ export default function Dashboard() {
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Signals"
-          value={loadingSummary ? null : summary?.totalSignals.toString() ?? "0"}
+          value={loadingSummary ? null : String(totalSignals)}
           icon={Activity}
           trend="+12% from last week"
         />
         <StatCard
           title="Win Rate"
-          value={loadingSummary ? null : `${summary?.winRate.toFixed(1)}%`}
+          value={loadingSummary ? null : `${winRate.toFixed(1)}%`}
           icon={Target}
           trend="Based on closed positions"
-          valueClass={summary && summary.winRate > 60 ? "text-emerald-400" : "text-foreground"}
-          glow={summary && summary.winRate > 60 ? "glow-emerald" : ""}
+          valueClass={winRate > 60 ? "text-emerald-400" : "text-foreground"}
+          glow={winRate > 60 ? "glow-emerald" : ""}
         />
         <StatCard
           title="Avg Confidence"
-          value={loadingSummary ? null : `${summary?.avgConfidence.toFixed(0)}/100`}
+          value={loadingSummary ? null : `${avgConfidence.toFixed(0)}/100`}
           icon={BarChart2}
         />
         <Card className="border-border glass">
@@ -150,14 +171,14 @@ export default function Dashboard() {
             {loadingSummary ? <Skeleton className="h-8 w-full" /> : (
               <>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-emerald-400 font-mono font-bold">{summary?.buyCount ?? 0} <span className="text-[10px] text-muted-foreground">BUY</span></span>
-                  <span className="text-rose-400 font-mono font-bold">{summary?.sellCount ?? 0} <span className="text-[10px] text-muted-foreground">SELL</span></span>
-                  <span className="text-amber-400 font-mono font-bold">{summary?.holdCount ?? 0} <span className="text-[10px] text-muted-foreground">HOLD</span></span>
+                  <div className="text-emerald-400 font-mono font-bold">{buyCount} <span className="text-[10px] text-muted-foreground">BUY</span></div>
+                  <div className="text-rose-400 font-mono font-bold">{sellCount} <span className="text-[10px] text-muted-foreground">SELL</span></div>
+                  <div className="text-amber-400 font-mono font-bold">{holdCount} <span className="text-[10px] text-muted-foreground">HOLD</span></div>
                 </div>
                 <div className="h-1.5 rounded-full overflow-hidden flex">
-                  <div className="bg-emerald-500 h-full transition-all" style={{ width: `${((summary?.buyCount ?? 0) / Math.max(1, summary?.totalSignals ?? 1)) * 100}%` }} />
-                  <div className="bg-rose-500 h-full transition-all"   style={{ width: `${((summary?.sellCount ?? 0) / Math.max(1, summary?.totalSignals ?? 1)) * 100}%` }} />
-                  <div className="bg-amber-500 h-full transition-all"  style={{ width: `${((summary?.holdCount ?? 0) / Math.max(1, summary?.totalSignals ?? 1)) * 100}%` }} />
+                  <div className="bg-emerald-500 h-full transition-all" style={{ width: `${((buyCount / Math.max(1, totalSignals)) * 100)}%` }} />
+                  <div className="bg-rose-500 h-full transition-all"   style={{ width: `${((sellCount / Math.max(1, totalSignals)) * 100)}%` }} />
+                  <div className="bg-amber-500 h-full transition-all"  style={{ width: `${((holdCount / Math.max(1, totalSignals)) * 100)}%` }} />
                 </div>
               </>
             )}
@@ -174,8 +195,8 @@ export default function Dashboard() {
                 <div className="widget-label">{p.symbol}/USD</div>
                 <PriceFlash value={p.price} decimals={p.symbol === "GOLD" ? 2 : 2} />
               </div>
-              <span className={`text-xs font-mono font-bold ${p.changePercent24h >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                {p.changePercent24h >= 0 ? "+" : ""}{p.changePercent24h.toFixed(2)}%
+              <span className={`text-xs font-mono font-bold ${safeNumber(p.changePercent24h) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                {safeNumber(p.changePercent24h) >= 0 ? "+" : ""}{safeNumber(p.changePercent24h).toFixed(2)}%
               </span>
             </CardContent>
           </Card>

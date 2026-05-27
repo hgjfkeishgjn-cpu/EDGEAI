@@ -51,6 +51,7 @@ function usePriceFlash(price: number | undefined): FlashState {
       return () => clearTimeout(t);
     }
     prevRef.current = price;
+    return undefined;
   }, [price]);
 
   return flash;
@@ -112,11 +113,11 @@ function PriceCard({ symbol, price, changePercent24h }: {
 export default function Market() {
   const { data: prices, isLoading: loadingPrices } = useGetMarketPrices(
     { symbols: MARKET_SYMBOLS },
-    { query: { refetchInterval: 5000 } }
+    { query: { queryKey: ["marketPrices", MARKET_SYMBOLS], refetchInterval: 5000 } }
   );
 
   const { data: trending, isLoading: loadingTrending } = useGetTrendingAssets(
-    { query: { refetchInterval: 60000 } }
+    { query: { queryKey: ["trendingAssets"], refetchInterval: 60000 } }
   );
 
   const buyCount = trending?.filter(a => a.latestAction === "BUY").length ?? 0;

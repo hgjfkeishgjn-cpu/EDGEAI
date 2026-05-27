@@ -1,0 +1,150 @@
+import { z } from "zod/v4";
+export declare const planEnum: import("drizzle-orm/pg-core").PgEnum<["free", "pro", "premium"]>;
+export declare const subStatusEnum: import("drizzle-orm/pg-core").PgEnum<["active", "cancelled", "expired"]>;
+export declare const subscriptionsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "subscriptions";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "id";
+            tableName: "subscriptions";
+            dataType: "number";
+            columnType: "PgSerial";
+            data: number;
+            driverParam: number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: true;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        plan: import("drizzle-orm/pg-core").PgColumn<{
+            name: "plan";
+            tableName: "subscriptions";
+            dataType: "string";
+            columnType: "PgEnumColumn";
+            data: "free" | "pro" | "premium";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["free", "pro", "premium"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        status: import("drizzle-orm/pg-core").PgColumn<{
+            name: "status";
+            tableName: "subscriptions";
+            dataType: "string";
+            columnType: "PgEnumColumn";
+            data: "active" | "cancelled" | "expired";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["active", "cancelled", "expired"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        signalsPerDay: import("drizzle-orm/pg-core").PgColumn<{
+            name: "signals_per_day";
+            tableName: "subscriptions";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        userId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "user_id";
+            tableName: "subscriptions";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        expiresAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "expires_at";
+            tableName: "subscriptions";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "created_at";
+            tableName: "subscriptions";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+    };
+    dialect: "pg";
+}>;
+export declare const insertSubscriptionSchema: z.ZodObject<{
+    userId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    plan: z.ZodOptional<z.ZodEnum<{
+        free: "free";
+        pro: "pro";
+        premium: "premium";
+    }>>;
+    status: z.ZodOptional<z.ZodEnum<{
+        active: "active";
+        cancelled: "cancelled";
+        expired: "expired";
+    }>>;
+    signalsPerDay: z.ZodOptional<z.ZodInt>;
+    expiresAt: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
+}, {
+    out: {};
+    in: {};
+}>;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptionsTable.$inferSelect;
+//# sourceMappingURL=subscriptions.d.ts.map

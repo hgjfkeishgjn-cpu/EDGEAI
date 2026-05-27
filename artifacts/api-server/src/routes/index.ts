@@ -9,6 +9,7 @@ import subscriptionRouter from "./subscription";
 import chatRouter from "./chat";
 import chartsRouter from "./charts";
 import newsRouter from "./news";
+import authRouter from "./auth";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(subscriptionRouter);
 router.use(chatRouter);
 router.use(chartsRouter);
 router.use(newsRouter);
+router.use(authRouter);
 
 export default router;

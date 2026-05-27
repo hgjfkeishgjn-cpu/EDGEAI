@@ -26,7 +26,7 @@ function usePriceFlash(price: number | undefined): FlashDir {
   const prev = useRef<number | undefined>(undefined);
   const [flash, setFlash] = useState<FlashDir>(null);
   useEffect(() => {
-    if (price === undefined) return;
+    if (price === undefined) return undefined;
     if (prev.current !== undefined && price !== prev.current) {
       setFlash(price > prev.current ? "up" : "down");
       const t = setTimeout(() => setFlash(null), 500);
@@ -34,6 +34,7 @@ function usePriceFlash(price: number | undefined): FlashDir {
       return () => clearTimeout(t);
     }
     prev.current = price;
+    return undefined;
   }, [price]);
   return flash;
 }
@@ -66,7 +67,7 @@ function TickItem({ symbol, price, changePercent24h }: {
 export default function TickerTape() {
   const { data: prices } = useGetMarketPrices(
     { symbols: SYMBOLS },
-    { query: { refetchInterval: 5000 } }
+    { query: { queryKey: ["marketPrices", SYMBOLS], refetchInterval: 5000 } }
   );
 
   if (!prices || prices.length === 0) return null;

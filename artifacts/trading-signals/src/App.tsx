@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useUser, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
@@ -23,13 +23,12 @@ import News from "@/pages/News";
 import PropFirm from "@/pages/PropFirm";
 import Layout from "@/components/Layout";
 
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
-
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const basePath = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+
+const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+const origin = typeof window !== "undefined" ? window.location.origin : "";
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -37,17 +36,30 @@ function stripBase(path: string): string {
     : path;
 }
 
+function routePath(path: string): string {
+  return basePath && basePath !== "/" && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
+}
+
+let clerkPubKey = publishableKeyFromHost(hostname, clerkPublishableKey) ?? clerkPublishableKey;
+
 if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
+  // Don't throw in dev; provide a graceful fallback so the app can render.
+  // In production you should set VITE_CLERK_PUBLISHABLE_KEY.
+  // Keep clerkPubKey falsy to indicate Clerk is unavailable.
+  // eslint-disable-next-line no-console
+  console.warn("Missing Clerk publishable key in VITE_CLERK_PUBLISHABLE_KEY. Auth routes will show a fallback.");
+  clerkPubKey = undefined as unknown as string;
 }
 
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
-  options: {
+    options: {
     logoPlacement: "inside" as const,
     logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+    logoImageUrl: `${origin}${basePath}/logo.svg`,
   },
   variables: {
     colorPrimary: "hsl(210, 40%, 98%)",
@@ -90,7 +102,20 @@ const clerkAppearance = {
   },
 };
 
+function AuthFallback({ message }: { message?: string }) {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+      <div className="text-center max-w-md">
+        <h2 className="text-xl font-bold mb-2">Authentication Unavailable</h2>
+        <p className="text-sm text-muted-foreground mb-4">{message ?? "Clerk is not configured for this environment."}</p>
+        <a href={basePath || "/"} className="text-sm text-primary hover:underline">Return home</a>
+      </div>
+    </div>
+  );
+}
+
 function SignInPage() {
+  if (!clerkPubKey) return <AuthFallback message={"Set VITE_CLERK_PUBLISHABLE_KEY to enable Clerk auth."} />;
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
@@ -99,6 +124,7 @@ function SignInPage() {
 }
 
 function SignUpPage() {
+  if (!clerkPubKey) return <AuthFallback message={"Set VITE_CLERK_PUBLISHABLE_KEY to enable Clerk auth."} />;
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
@@ -107,16 +133,9 @@ function SignUpPage() {
 }
 
 function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/dashboard" />
-      </Show>
-      <Show when="signed-out">
-        <Home />
-      </Show>
-    </>
-  );
+  const { isSignedIn } = useUser();
+  if (isSignedIn) return <Redirect to={routePath("/dashboard")} />;
+  return <Home />;
 }
 
 function ClerkQueryClientCacheInvalidator() {
@@ -178,7 +197,7 @@ function ClerkProviderWithRoutes() {
             <Route>
               <Layout>
                 <Switch>
-                  <Route path="/dashboard" component={Dashboard} />
+                  <Route path={routePath("/dashboard")} component={Dashboard} />
                   <Route path="/signals" component={Signals} />
                   <Route path="/charts" component={Charts} />
                   <Route path="/chat" component={Chat} />
