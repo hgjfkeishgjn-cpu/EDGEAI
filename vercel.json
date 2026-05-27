@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server build && pnpm --filter @workspace/trading-signals build",
-  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "corepack use pnpm@10 && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server build && pnpm --filter @workspace/trading-signals build",
+  "installCommand": "corepack use pnpm@10 && pnpm install --no-frozen-lockfile",
   "outputDirectory": "artifacts/trading-signals/dist/public",
   "builds": [
     {
