@@ -3,13 +3,6 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
-import {
-  CLERK_PROXY_PATH,
-  clerkProxyMiddleware,
-  getClerkProxyHost,
-} from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -45,18 +38,11 @@ app.use(
   }),
 );
 
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Lightweight auth verification endpoint to allow external services to check
-// whether Better Auth / auth integration is configured. Placed before Clerk
-// middleware so it can respond even when Clerk keys are not set.
-// Intercept requests for the auth-check endpoint before any auth middleware
-// so external verifiers (which may send paths like "//api/auth") always get
-// a simple health/verification response.
+// Auth-check endpoint
 app.use((req, res, next) => {
   try {
     const url = req.url || "";
@@ -70,19 +56,6 @@ app.use((req, res, next) => {
   }
   return next();
 });
-
-// Conditionally apply Clerk middleware only if CLERK_PUBLISHABLE_KEY is set.
-// When migrating to Better Auth, Clerk can be disabled entirely.
-if (process.env.CLERK_PUBLISHABLE_KEY) {
-  app.use(
-    clerkMiddleware((req) => ({
-      publishableKey: publishableKeyFromHost(
-        getClerkProxyHost(req) ?? "",
-        process.env.CLERK_PUBLISHABLE_KEY,
-      ),
-    })),
-  );
-}
 
 app.use("/api", router);
 

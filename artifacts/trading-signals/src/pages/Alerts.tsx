@@ -40,7 +40,7 @@ import { Bell, Plus, Trash2, BellRing } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Show } from "@clerk/react";
+import { authClient } from "@/lib/betterAuth";
 import { Link } from "wouter";
 
 const alertSchema = z.object({
@@ -120,7 +120,9 @@ export default function Alerts() {
           <p className="text-muted-foreground">Configure custom notifications for price action and AI signals.</p>
         </div>
         
-        <Show when="signed-in">
+        {(() => {
+          const { data: session } = authClient.useSession();
+          if (session) return (
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -199,12 +201,13 @@ export default function Alerts() {
               </Form>
             </DialogContent>
           </Dialog>
-        </Show>
-        <Show when="signed-out">
-          <Button asChild>
-            <Link href="/sign-in">Sign In to Set Alerts</Link>
-          </Button>
-        </Show>
+          );
+          return (
+            <Button asChild>
+              <Link href="/sign-in">Sign In to Set Alerts</Link>
+            </Button>
+          );
+        })()}
       </div>
 
       <div className="grid gap-4">

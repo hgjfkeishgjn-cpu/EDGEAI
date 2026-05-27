@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { Show, useClerk, useUser } from "@clerk/react";
 import {
   LayoutDashboard,
   Activity,
@@ -20,6 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TickerTape from "@/components/TickerTape";
+import { authClient } from "@/lib/betterAuth";
 
 const navItems = [
   { href: "/dashboard",  label: "Dashboard",    icon: LayoutDashboard },
@@ -37,12 +37,15 @@ const navItems = [
 
 function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const [location] = useLocation();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { data: session } = authClient.useSession();
+  const signOut = authClient.useSignOut();
 
   const handleSignOut = () => {
-    signOut({ redirectUrl: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" });
+    signOut({ redirectUrl: import.meta.env.BASE_URL?.replace(/\/$/, "") || "/" });
   };
+
+  const user = session?.user;
+  const isSignedIn = !!session;
 
   const content = (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
@@ -93,15 +96,15 @@ function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () => void }
         </nav>
       </div>
 
-      <Show when="signed-in">
+      {isSignedIn ? (
         <div className="p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-9 w-9 border border-sidebar-border">
-              <AvatarImage src={user?.imageUrl} />
-              <AvatarFallback>{user?.firstName?.charAt(0) || "U"}</AvatarFallback>
+              <AvatarImage src={user?.image} />
+              <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col flex-1 overflow-hidden">
-              <span className="text-sm font-medium truncate">{user?.fullName || user?.primaryEmailAddress?.emailAddress}</span>
+              <span className="text-sm font-medium truncate">{user?.name || user?.email}</span>
               <span className="text-xs text-muted-foreground truncate">Pro Plan</span>
             </div>
           </div>
@@ -115,9 +118,7 @@ function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () => void }
             Sign Out
           </Button>
         </div>
-      </Show>
-
-      <Show when="signed-out">
+      ) : (
         <div className="p-4 border-t border-sidebar-border space-y-2">
           <Button asChild className="w-full" variant="default" data-testid="button-signin-nav">
             <Link href="/sign-in">Sign In</Link>
@@ -126,7 +127,7 @@ function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () => void }
             <Link href="/sign-up">Sign Up</Link>
           </Button>
         </div>
-      </Show>
+      )}
     </div>
   );
 

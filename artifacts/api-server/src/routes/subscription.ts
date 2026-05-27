@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, subscriptionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { UpsertSubscriptionBody } from "@workspace/api-zod";
-import { getAuth } from "@clerk/express";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router = Router();
 
@@ -12,9 +12,8 @@ const PLAN_LIMITS: Record<string, number> = {
   premium: 999,
 };
 
-router.get("/subscription", async (req, res): Promise<void> => {
-  const auth = getAuth(req);
-  const userId = (auth?.sessionClaims?.userId as string | undefined) || auth?.userId || "anonymous";
+router.get("/subscription", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as Request & { userId: string }).userId || "anonymous";
   const [sub] = await db.select().from(subscriptionsTable).where(eq(subscriptionsTable.userId, userId));
   if (!sub) {
     // Return default free tier
@@ -30,14 +29,13 @@ router.get("/subscription", async (req, res): Promise<void> => {
   res.json(sub);
 });
 
-router.post("/subscription", async (req, res): Promise<void> => {
+router.post("/subscription", requireAuth, async (req, res): Promise<void> => {
   const parsed = UpsertSubscriptionBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const auth = getAuth(req);
-  const userId = (auth?.sessionClaims?.userId as string | undefined) || auth?.userId || "anonymous";
+  const userId = (req as Request & { userId: string }).userId || "anonymous";
   const plan = parsed.data.plan as "free" | "pro" | "premium";
   const signalsPerDay = PLAN_LIMITS[plan] ?? 5;
 

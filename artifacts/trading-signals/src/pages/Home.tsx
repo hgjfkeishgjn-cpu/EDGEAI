@@ -94,7 +94,7 @@ export default function Home() {
         <section className="py-16 container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {[
-              { icon: Lock,     title: "Secure by default",      body: "Clerk authentication, encrypted sessions, and no data sold to third parties." },
+              { icon: Lock,     title: "Secure by default",      body: "Better Auth authentication, encrypted sessions, and no data sold to third parties." },
               { icon: Activity, title: "Always-on terminal",     body: "Live simulation engine keeps every widget updating even between market hours." },
               { icon: Target,   title: "Contract-first signals", body: "Every signal includes entry, TP, SL, confidence score, R:R ratio, and AI reasoning." },
             ].map(t => (

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Zap, Crown, ShieldAlert } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Show } from "@clerk/react";
+import { authClient } from "@/lib/betterAuth";
 import { Link } from "wouter";
 
 export default function Pricing() {
@@ -70,7 +70,9 @@ export default function Pricing() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Show when="signed-in">
+            {(() => {
+              const { data: session } = authClient.useSession();
+              return session ? (
               <Button 
                 className="w-full" 
                 variant={currentPlan === "free" ? "outline" : "default"}
@@ -79,12 +81,12 @@ export default function Pricing() {
               >
                 {currentPlan === "free" ? "Current Plan" : "Downgrade"}
               </Button>
-            </Show>
-            <Show when="signed-out">
+              ) : (
               <Button asChild className="w-full" variant="outline">
                 <Link href="/sign-up">Sign Up Free</Link>
               </Button>
-            </Show>
+              );
+            })()}
           </CardFooter>
         </Card>
 
@@ -119,7 +121,9 @@ export default function Pricing() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Show when="signed-in">
+            {(() => {
+              const { data: session } = authClient.useSession();
+              return session ? (
               <Button 
                 className="w-full" 
                 variant={currentPlan === "pro" ? "outline" : "default"}
@@ -128,12 +132,12 @@ export default function Pricing() {
               >
                 {currentPlan === "pro" ? "Current Plan" : "Upgrade to Pro"}
               </Button>
-            </Show>
-            <Show when="signed-out">
+              ) : (
               <Button asChild className="w-full">
                 <Link href="/sign-up">Get Pro</Link>
               </Button>
-            </Show>
+              );
+            })()}
           </CardFooter>
         </Card>
 
@@ -166,21 +170,23 @@ export default function Pricing() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Show when="signed-in">
+            {(() => {
+              const { data: session } = authClient.useSession();
+              return session ? (
               <Button 
-                className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950" 
+                className="w-full" 
                 variant={currentPlan === "premium" ? "outline" : "default"}
                 disabled={currentPlan === "premium" || upsertMutation.isPending}
                 onClick={() => handleUpgrade("premium")}
               >
                 {currentPlan === "premium" ? "Current Plan" : "Upgrade to Premium"}
               </Button>
-            </Show>
-            <Show when="signed-out">
-              <Button asChild className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950">
+              ) : (
+              <Button asChild className="w-full">
                 <Link href="/sign-up">Get Premium</Link>
               </Button>
-            </Show>
+              );
+            })()}
           </CardFooter>
         </Card>
       </div>

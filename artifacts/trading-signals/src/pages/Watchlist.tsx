@@ -58,7 +58,7 @@ import { Plus, Trash2, LineChart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Show } from "@clerk/react";
+import { authClient } from "@/lib/betterAuth";
 import { Link } from "wouter";
 
 const addWatchlistSchema = z.object({
@@ -136,7 +136,9 @@ export default function Watchlist() {
           <p className="text-muted-foreground">Monitor specific assets for upcoming signals.</p>
         </div>
         
-        <Show when="signed-in">
+        {(() => {
+          const { data: session } = authClient.useSession();
+          return session ? (
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button data-testid="btn-add-watchlist">
@@ -218,12 +220,12 @@ export default function Watchlist() {
               </Form>
             </DialogContent>
           </Dialog>
-        </Show>
-        <Show when="signed-out">
-          <Button asChild data-testid="btn-signin-watchlist">
-            <Link href="/sign-in">Sign In to Manage</Link>
-          </Button>
-        </Show>
+          ) : (
+            <Button asChild data-testid="btn-signin-watchlist">
+              <Link href="/sign-in">Sign In to Manage</Link>
+            </Button>
+          );
+        })()}
       </div>
 
       <Card className="border-border">

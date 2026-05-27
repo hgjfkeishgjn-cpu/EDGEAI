@@ -59,7 +59,7 @@ import { Plus, Trash2, Edit2, Briefcase, TrendingUp, TrendingDown, DollarSign } 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Show } from "@clerk/react";
+import { authClient } from "@/lib/betterAuth";
 import { Link } from "wouter";
 
 const positionSchema = z.object({
@@ -165,7 +165,9 @@ export default function Portfolio() {
           <p className="text-muted-foreground">Track your open positions and performance.</p>
         </div>
         
-        <Show when="signed-in">
+        {(() => {
+          const { data: session } = authClient.useSession();
+          return session ? (
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
               <Button data-testid="btn-add-position">
@@ -253,12 +255,12 @@ export default function Portfolio() {
               </Form>
             </DialogContent>
           </Dialog>
-        </Show>
-        <Show when="signed-out">
-          <Button asChild>
-            <Link href="/sign-in">Sign In to Manage</Link>
-          </Button>
-        </Show>
+          ) : (
+            <Button asChild>
+              <Link href="/sign-in">Sign In to Manage</Link>
+            </Button>
+          );
+        })()}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
